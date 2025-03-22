@@ -15,7 +15,7 @@
   w_1 = 0.9;
   t_acc = 1.8;
   l = 3;
-  d0 = 15;
+  d0 = 5; % Safety distance
   
   % Vehicle constraints
   ey_bar = 0.4;
@@ -25,6 +25,7 @@
   alpha_bar = 0.35;
   a_bar_low = -5;
   a_bar_high = 5;
+  t_gap = 1.5; % Time gap
   
   % Horizon and shooting intervals
   M = 100;
@@ -36,7 +37,7 @@
 
   % Cost tuning
   Q = diag([0 1 1 10 1 1 1]);
-  R = diag([4 10]);
+  R = diag([4 10 1e3]);
   
   % Compute terminal cost
   P_lat = [325.51 593.13 97.32 1.46;
@@ -49,7 +50,7 @@
 
   % Define states and controls
   xLabels = {'s','e_y','e_psi','delta','alpha','v','a'};
-  uLabels = {'a_req','delta_sp'};
+  uLabels = {'a_req','delta_sp','sl_t_gap'};
 
   % Indexing functions for states
   nx = numel(xLabels);
@@ -103,9 +104,14 @@
     iG_.dyn{k} = (1:nx).' + offset;
     offset = offset + nx;
     
-    % Obstacle constraint
+    % Obstacle constraint (s - s_obs <= -d_safe)
     g = [g; V(iV('x',k,'s'))-Vr(iV('x',k,'s'))];
     iG_.obs{k} = 1 + offset;
+    offset = offset + 1;
+
+    % Following distance constraint (s + T_gap*v - s_obs - slack <= 0)
+    g = [g; V(iV('x',k,'s'))+t_gap*V(iV('x',k,'v'))-Vr(iV('x',k,'s'))-V(iV('u',k,'sl_t_gap'))];
+    iG_.t_gap{k} = 1 + offset;
     offset = offset + 1;
      
     % States at time k
@@ -122,6 +128,12 @@
       dx = xk - xkr;
       du = uk;
       cost = cost + dx'*Q*dx + du'*R*du;
+    else
+      % Cost for times [N + 1, M]
+      slack = uk(uI.sl_t_gap);
+      R_slack = R(uI.sl_t_gap,uI.sl_t_gap);
+      % TODO: Add l1 cost for "exact penalty" on slack
+      cost = cost + slack'*R_slack*slack;
     end
       
   end
@@ -182,7 +194,10 @@
   ubg(iG('stop')) = 0*ones( size(iG('stop')) );
 
   % Obstacle
-  ubg(iG('obs')) = zeros( size(iG('obs')) );
+  ubg(iG('obs')) = -d0*ones( size(iG('obs')) );
+
+  % Time gap
+  ubg(iG('t_gap')) = zeros(size(iG('t_gap')));
 
   % State and control constraints
   lbv(iV('x',1:M,'e_y')) = -ey_bar*ones(size(iV('x',1:M,'e_y')));
@@ -197,6 +212,7 @@
   ubv(iV('x',1:M,'v')) = v_bar*ones(size(iV('x',1:M,'v')));
   lbv(iV('u',1:M,'delta_sp')) = -delta_bar*ones(size(iV('u',1:M,'delta_sp')));
   ubv(iV('u',1:M,'delta_sp')) = delta_bar*ones(size(iV('u',1:M,'delta_sp')));
+  lbv(iV('u',1:M,'sl_t_gap')) = 0;
 
   % Initialization for solver
   Vref = zeros(size(V)); 
@@ -209,7 +225,7 @@
   % Logging variables
   X = x_0; 
   U = []; 
-  P_obs = []; Px_pred_list = []; 
+  P_obs = []; S_obs = []; Px_pred_list = []; 
   XS_open = []; XV_open = []; XA_open = []; 
   XEy_open = []; XEpsi_open = []; XDelta_open = []; 
   UDelta_open = []; UA_open = [];
@@ -233,7 +249,7 @@
     else
 
         Vref(iV('x',1:M,'s')) = distance;
-        obs_pos = position_list{1, k}(active_index(1):active_index(end),1)-d0;
+        obs_pos = position_list{1, k}(active_index(1):active_index(end),1);
         Vref(iV('x',active_index(1):active_index(end),'s')) = obs_pos;
 
     end
@@ -267,6 +283,7 @@
     U = [U u_0];
     P_obs = [P_obs;
              w_obs_list(1,k) w_obs_list(2,k)];
+    S_obs = [S_obs; Vref(iV('x',1,'s'))];
     XEy_open = [XEy_open; v_opt(iV('x',1:M+1,'e_y'))'];
     XEpsi_open = [XEpsi_open; v_opt(iV('x',1:M+1,'e_psi'))'];
     XS_open = [XS_open; v_opt(iV('x',1:M+1,'s'))'];
@@ -295,7 +312,7 @@ fprintf('\n');
 
 tx = 0:ts:(k)*ts;
 
-save(save_file,'X','U','ts','tx','sim_time','P_obs','Px_pred_list',...
+save(save_file,'X','U','ts','tx','sim_time','P_obs','S_obs','Px_pred_list',...
                'XS_open','XV_open','XEy_open','XA_open', 'XEpsi_open', 'XDelta_open',...
-               'UA_open','UDelta_open','M','S_1','S_2','S_3','A','t_QP')
+               'UA_open','UDelta_open','M','S_1','S_2','S_3','A','t_QP','d0','t_gap');
 
