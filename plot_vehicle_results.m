@@ -15,7 +15,11 @@ filename_v = 'v_ZOD.eps';
 filename_s1 = 'x1_ZOD.eps';
 filename_s2 = 'x2_mode_ZOD.eps';
 filename_a_areq = 'a_a_req_ZOD.eps';
-path_fig = '/Users/quany/Library/CloudStorage/OneDrive-Chalmers/Documents/MPFTC/writings/figures/';
+filename_dist = 'dist_ZOD.eps';
+path_fig = fullfile(pwd, "figs");
+if ~exist(path_fig, 'dir')
+   mkdir(path_fig)
+end
 
 ey_bar = 0.4;
 e_psi_bar = 0.61;
@@ -64,6 +68,9 @@ U = safe_mpftc.U(:,1:log_leng);
 P_obs = w_obs_list';
 a_bar_low = safe_mpftc.A(:,1:log_leng);
 a_bar_high = -a_bar_low;
+d0 = safe_mpftc.d0;
+t_gap = safe_mpftc.t_gap;
+S_obs = safe_mpftc.S_obs';
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% traj
 % road
@@ -143,7 +150,7 @@ box on
 ax = gca;
 ax.LineWidth = framelw;
 filename = [filename_traj,num2str(k)];
-% saveas(gcf,[path_fig filename],'epsc');
+% saveas(gcf,fullfile(path_fig,filename),'epsc');
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % %% a
@@ -177,7 +184,7 @@ end
 % box on
 % ax = gca;
 % ax.LineWidth = framelw;
-% saveas(gcf,[path_fig filename_a],'epsc');
+% saveas(gcf,fullfile(path_fig,filename_a),'epsc');
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % %% a req
 % k = 1;
@@ -209,72 +216,72 @@ end
 % box on
 % ax = gca;
 % ax.LineWidth = framelw;
-% saveas(gcf,[path_fig filename_a_req],'epsc');
+% saveas(gcf,fullfile(path_fig,filename_a_req),'epsc');
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % %% v
-% k = 1;
-% nPlots = 3;
-% data{k}.nPlots = nPlots;
-% data{k}.x = {[0 tx(end)];[0 tx(end)];tx;}; 
-% data{k}.y = {[v_bar v_bar];[0 0];X(6,:);};
-% data{k}.color = {red;red;black};
-% data{k}.linestyle = {'-';'-';'-'};
-% data{k}.linewidth = {conslw;conslw;plotlw;};
-% data{k}.title = '';
-% data{k}.xlabel = '$t$ [s]'; data{k}.ylabel = '$v$ [m/s]';
-% data{k}.fontsize = 30;
-% data{k}.gca_fontsize = 30;
-% data{k}.grid ='on';
-% data{k}.legend = {'','','$v$'};
-% 
-% opts.third_party = third_party_plot;
-% opts.dim = [1 1]; opts.gap = [0.15 0.045]; 
-% opts.margh = [0.1 0.1]; opts.margw = [0.1 0.1];
-% px = get(0,'screensize');
-% gh=figure; set(gh,'position',[px(1) px(2) px(3) px(4)/3]);
-% axe = plot_trajectories(data,opts);
-% 
-% axes(axe(1)); 
-% xlim([0 tx(end)]);
-% ylim([0-1 v_bar+1]);
-% set(axe(1).Legend,'location','northeast')
-% box on
-% ax = gca;
-% ax.LineWidth = framelw;
-% saveas(gcf,[path_fig filename_v],'epsc');
+k = 1;
+nPlots = 3;
+data{k}.nPlots = nPlots;
+data{k}.x = {[0 tx(end)];[0 tx(end)];tx;}; 
+data{k}.y = {[v_bar v_bar];[0 0];X(6,:);};
+data{k}.color = {red;red;black};
+data{k}.linestyle = {'-';'-';'-'};
+data{k}.linewidth = {conslw;conslw;plotlw;};
+data{k}.title = '';
+data{k}.xlabel = '$t$ [s]'; data{k}.ylabel = '$v$ [m/s]';
+data{k}.fontsize = 30;
+data{k}.gca_fontsize = 30;
+data{k}.grid ='on';
+data{k}.legend = {'','','$v$'};
+
+opts.third_party = third_party_plot;
+opts.dim = [1 1]; opts.gap = [0.15 0.045]; 
+opts.margh = [0.1 0.1]; opts.margw = [0.1 0.1];
+px = get(0,'screensize');
+gh=figure; set(gh,'position',[px(1) px(2) px(3) px(4)/3]);
+axe = plot_trajectories(data,opts);
+
+axes(axe(1)); 
+xlim([0 tx(end)]);
+ylim([0-1 v_bar+1]);
+set(axe(1).Legend,'location','northeast')
+box on
+ax = gca;
+ax.LineWidth = framelw;
+saveas(gcf,fullfile(path_fig,filename_v),'epsc');
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % %% a
-% k = 1;
-% nPlots = 4;
-% data{k}.nPlots = nPlots;
-% data{k}.x = {tx;tx;tx;tx}; 
-% data{k}.y = {U(1,:);X(7,:);a_bar_high;a_bar_low};
-% data{k}.color = {blue;black;red;red};
-% data{k}.linestyle = {'-';'-';'-';'-'};
-% data{k}.linewidth = {plotlw;plotlw;conslw;conslw;};
-% data{k}.title = '';
-% data{k}.xlabel = '$t$ [s]'; data{k}.ylabel = '$a$ [m/$s^2$]';
-% data{k}.fontsize = 30;
-% data{k}.gca_fontsize = 30;
-% data{k}.grid ='on';
-% data{k}.legend = {'$a_{req}$','$a$','',''};
-% 
-% opts.third_party = third_party_plot;
-% opts.dim = [1 1]; opts.gap = [0.15 0.045]; 
-% opts.margh = [0.1 0.1]; opts.margw = [0.1 0.1];
-% px = get(0,'screensize');
-% gh=figure; 
-% set(gh,'position',[px(1) px(2) px(3) px(4)/3]);
-% axe = plot_trajectories(data,opts);
-% 
-% axes(axe(1)); 
-% xlim([0 tx(end)]);
-% ylim([-5 5]);
-% set(axe(1).Legend,'location','northeast')
-% box on
-% ax = gca;
-% ax.LineWidth = framelw;
-% saveas(gcf,[path_fig filename_a_areq],'epsc');
+k = 1;
+nPlots = 4;
+data{k}.nPlots = nPlots;
+data{k}.x = {tx;tx;tx;tx}; 
+data{k}.y = {U(1,:);X(7,:);a_bar_high;a_bar_low};
+data{k}.color = {blue;black;red;red};
+data{k}.linestyle = {'-';'-';'-';'-'};
+data{k}.linewidth = {plotlw;plotlw;conslw;conslw;};
+data{k}.title = '';
+data{k}.xlabel = '$t$ [s]'; data{k}.ylabel = '$a$ [m/$s^2$]';
+data{k}.fontsize = 30;
+data{k}.gca_fontsize = 30;
+data{k}.grid ='on';
+data{k}.legend = {'$a_{req}$','$a$','',''};
+
+opts.third_party = third_party_plot;
+opts.dim = [1 1]; opts.gap = [0.15 0.045]; 
+opts.margh = [0.1 0.1]; opts.margw = [0.1 0.1];
+px = get(0,'screensize');
+gh=figure; 
+set(gh,'position',[px(1) px(2) px(3) px(4)/3]);
+axe = plot_trajectories(data,opts);
+
+axes(axe(1)); 
+xlim([0 tx(end)]);
+ylim([-5 5]);
+set(axe(1).Legend,'location','northeast')
+box on
+ax = gca;
+ax.LineWidth = framelw;
+saveas(gcf,fullfile(path_fig,filename_a_areq),'epsc');
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % %% computation time
 % k = 1;
@@ -364,3 +371,35 @@ end
 % set(axe(1).Legend,'location','southeast')
 % ax = gca;
 % ax.LineWidth = framelw;
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% %% Safe distance
+k = 1;
+nPlots = 4;
+data{k}.nPlots = nPlots;
+data{k}.x = {[0 tx(end)];tx;tx;tx}; 
+data{k}.y = {[d0 d0];X(6,:)*t_gap;S_obs-X(1,:);X(6,:)*t_gap-U(3,:);};
+data{k}.color = {red;orange;black;purple};
+data{k}.linestyle = {'-';'-';'-';'-'};
+data{k}.linewidth = {conslw;conslw;plotlw;plotlw;};
+data{k}.title = '';
+data{k}.xlabel = '$t$ [s]'; data{k}.ylabel = '$d$ [m]';
+data{k}.fontsize = 30;
+data{k}.gca_fontsize = 30;
+data{k}.grid ='on';
+data{k}.legend = {'$d_{safe}$','$d_{follow}$','$d$','$d_{slack}$'};
+
+opts.third_party = third_party_plot;
+opts.dim = [1 1]; opts.gap = [0.15 0.045]; 
+opts.margh = [0.1 0.1]; opts.margw = [0.1 0.1];
+px = get(0,'screensize');
+gh=figure; set(gh,'position',[px(1) px(2) px(3) px(4)/3]);
+axe = plot_trajectories(data,opts);
+
+axes(axe(1)); 
+xlim([0 tx(end)]);
+ylim([0-1 v_bar+1]);
+set(axe(1).Legend,'location','northeast')
+box on
+ax = gca;
+ax.LineWidth = framelw;
+saveas(gcf,fullfile(path_fig,filename_dist),'epsc');
